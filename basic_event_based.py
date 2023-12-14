@@ -1,17 +1,5 @@
 import threading
-from numpy import random
-
-# setting the seed for deterministic runs
-# random.seed(1234)
-
-
-# random time distributions
-def meditating_time_distribution():
-    return random.normal(loc=5, scale=3)
-
-
-def eating_time_distribution():
-    return random.normal(loc=3, scale=1)
+from parameters import meditating_time_distribution, eating_time_distribution
 
 
 # global variable locks
@@ -57,7 +45,7 @@ class Event:
         return f"{self.t}: {function}"
 
 
-def visualize_philosopher():
+def visualize_philosophers():
     return "".join([f" {p.state} " for p in philosophers])
 
 
@@ -127,13 +115,13 @@ if __name__ == "__main__":
         # call function corresponding to event
         function()
         # show state
-        print(f"{current_time:6.2f}: {visualize_philosopher()}")
+        print(f"{current_time:6.2f}: {visualize_philosophers()}")
 
         # update variables for deadlock checking
-        if visualize_philosopher() == last_state:
+        if visualize_philosophers() == last_state:
             cnt_last_state += 1
         else:
             cnt_last_state = 0
-            last_state = visualize_philosopher()
+            last_state = visualize_philosophers()
 
     print("deadlock detected, ended simulation")
