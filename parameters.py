@@ -1,7 +1,7 @@
 from numpy import random
 
 # setting the seed for deterministic runs
-random.seed(1234)
+# random.seed(1234)
 
 
 # random time distributions

@@ -1,5 +1,6 @@
 import threading
 from parameters import meditating_time_distribution, eating_time_distribution
+import math
 
 
 # global variable locks
@@ -98,18 +99,24 @@ class Philosopher:
 
 
 if __name__ == "__main__":
+    # parameters
+    cnt_max_events = math.inf # math.inf for simulation until deadlock
+    cnt_events_until_deadlock = 100
+
     # initialize philosophers
     philosophers = [Philosopher(id) for id in range(5)]
 
     print("simulation starts")
+    print("M ... meditating \t L/R ... getting left/right chopstick \t E ... eating \t - ... returning chopstick")
+    print(f"Time  :  State of each philosopher")
     cnt_events = 0
 
     # variables for deadlock detection
     last_state = ""
     cnt_last_state = 0
 
-    # deadlock is detected if nothing changes for 100 events
-    while cnt_last_state < 100 and cnt_events < 300:
+    # deadlock is detected if nothing changes for cnt_events_until_deadlock events
+    while cnt_last_state < cnt_events_until_deadlock and cnt_events < cnt_max_events:
         cnt_events += 1
         current_time, function = get_event()
         # call function corresponding to event
@@ -124,4 +131,8 @@ if __name__ == "__main__":
             cnt_last_state = 0
             last_state = visualize_philosophers()
 
-    print("deadlock detected, ended simulation")
+    if cnt_last_state >= cnt_events_until_deadlock:
+        print(f"Simulation ended as deadlock is detected after {cnt_events} events. "
+              f"In the last {cnt_events_until_deadlock} events nothing changed.")
+    else:
+        print(f"Simulation ended after {cnt_events} events. No deadlock occurred.")
