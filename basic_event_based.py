@@ -1,4 +1,5 @@
 import math
+import sys
 import threading
 from parameters import meditating_time_distribution, eating_time_distribution
 
@@ -105,7 +106,7 @@ class Philosopher:
 
 
 if __name__ == "__main__":
-    output_to_files = False
+    output_to_files = ("-o" in sys.argv or "--output" in sys.argv)
 
     # parameters
     cnt_max_events = 500   # math.inf for simulation until deadlock
