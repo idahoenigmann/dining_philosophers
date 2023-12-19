@@ -4,8 +4,8 @@ from numpy import random
 # random.seed(1234)
 
 # set strategy by uncommenting one of the following lines:
-# strategy = "deadlock_possible"
-strategy = "no_deadlock"
+strategy = "deadlock_possible"
+# strategy = "no_deadlock"
 
 
 # random time distributions
