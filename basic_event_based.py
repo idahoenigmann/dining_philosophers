@@ -95,6 +95,7 @@ class Philosopher:
 
     def return_chopsticks(self):
         self.state = "-"
+        self.log.append(f"Return,{int(current_time)}\n")
 
         # return left chopstick
         locks[self.id].release()
@@ -145,6 +146,5 @@ if __name__ == "__main__":
         print(f"Simulation ended after {cnt_events} events. No deadlock occurred.")
 
     for p in philosophers:
-        print(p.log)
         with open(f"philosopher{p.id}.csv", "w") as csvfile:
             csvfile.writelines(p.log)
