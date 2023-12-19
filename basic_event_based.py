@@ -107,6 +107,8 @@ class Philosopher:
 
 
 if __name__ == "__main__":
+    output = False
+
     # parameters
     cnt_max_events = 500     # math.inf for simulation until deadlock
     cnt_events_until_deadlock = 100
@@ -145,6 +147,7 @@ if __name__ == "__main__":
     else:
         print(f"Simulation ended after {cnt_events} events. No deadlock occurred.")
 
-    for p in philosophers:
-        with open(f"philosopher{p.id}.csv", "w") as csvfile:
-            csvfile.writelines(p.log)
+    if output:
+        for p in philosophers:
+            with open(f"philosopher{p.id}.csv", "w") as csvfile:
+                csvfile.writelines(p.log)
