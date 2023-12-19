@@ -1,3 +1,4 @@
+import math
 import threading
 from parameters import meditating_time_distribution, eating_time_distribution
 
