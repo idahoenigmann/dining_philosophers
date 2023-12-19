@@ -1,8 +1,5 @@
-import csv
 import threading
 from parameters import meditating_time_distribution, eating_time_distribution
-import math
-import numpy as np
 
 
 # global variable locks
@@ -110,7 +107,7 @@ if __name__ == "__main__":
     output = False
 
     # parameters
-    cnt_max_events = 500     # math.inf for simulation until deadlock
+    cnt_max_events = 1000   # math.inf for simulation until deadlock
     cnt_events_until_deadlock = 100
 
     # initialize philosophers
