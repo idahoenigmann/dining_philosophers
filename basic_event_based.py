@@ -1,6 +1,8 @@
+import csv
 import threading
 from parameters import meditating_time_distribution, eating_time_distribution
 import math
+import numpy as np
 
 
 # global variable locks
@@ -55,6 +57,7 @@ class Philosopher:
     def __init__(self, id):
         self.state = "-"
         self.id = id
+        self.log = []
         add_event(0, self.meditate)
 
     def __str__(self):
@@ -62,10 +65,12 @@ class Philosopher:
 
     def meditate(self):
         self.state = "M"
-        add_event(meditating_time_distribution(), self.get_left_chopstick)
+        self.log.append(f"Meditating,{int(current_time)}\n")
+        add_event(meditating_time_distribution(self.id, current_time), self.get_left_chopstick)
 
     def get_left_chopstick(self):
         self.state = "L"
+        self.log.append(f"Left,{int(current_time)}\n")
         # get left chopstick
         if locks[self.id].acquire(blocking=False):
             add_event(0, self.get_right_chopstick)
@@ -75,6 +80,7 @@ class Philosopher:
 
     def get_right_chopstick(self):
         self.state = "R"
+        self.log.append(f"Right,{int(current_time)}\n")
         # get right chopstick
         if locks[(self.id + 1) % 5].acquire(blocking=False):
             add_event(0, self.eat)
@@ -84,6 +90,7 @@ class Philosopher:
 
     def eat(self):
         self.state = "E"
+        self.log.append(f"Eating,{int(current_time)}\n")
         add_event(eating_time_distribution(), self.return_chopsticks)
 
     def return_chopsticks(self):
@@ -100,7 +107,7 @@ class Philosopher:
 
 if __name__ == "__main__":
     # parameters
-    cnt_max_events = math.inf # math.inf for simulation until deadlock
+    cnt_max_events = 500     # math.inf for simulation until deadlock
     cnt_events_until_deadlock = 100
 
     # initialize philosophers
@@ -136,3 +143,8 @@ if __name__ == "__main__":
               f"In the last {cnt_events_until_deadlock} events nothing changed.")
     else:
         print(f"Simulation ended after {cnt_events} events. No deadlock occurred.")
+
+    for p in philosophers:
+        print(p.log)
+        with open(f"philosopher{p.id}.csv", "w") as csvfile:
+            csvfile.writelines(p.log)

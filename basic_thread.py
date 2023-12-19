@@ -12,7 +12,7 @@ def philosopher(id):
     while True:
         # meditate
         logging.info(f"Philosopher {id} is meditating.")
-        time.sleep(max(meditating_time_distribution(), 0))
+        time.sleep(meditating_time_distribution())
 
         # eat
         logging.info(f"Philosopher {id} is hungry.")
@@ -23,7 +23,7 @@ def philosopher(id):
             locks[(id + 1) % 5].acquire()
             try:
                 logging.info(f"Philosopher {id} got the right chopstick and started to eat.")
-                time.sleep(max(eating_time_distribution(), 0))
+                time.sleep(eating_time_distribution())
 
                 logging.info(f"Philosopher {id} is finished eating.")
             finally:
