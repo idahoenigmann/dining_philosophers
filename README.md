@@ -9,6 +9,8 @@ Python implementation for Modelling and Simulation project
 ### Features:
 * basic version
 * visualization
+* hungriness
+* cleaning
 
 ### Installation
 Make sure you installed numpy and matplotlib packages.
