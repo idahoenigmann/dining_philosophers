@@ -9,7 +9,7 @@ strategy = "deadlock_possible"
 
 
 # random time distributions
-def meditating_time_distribution(id=None, time=None):
+def meditating_time_distribution(id=None, time=None, hungriness=None):
     if strategy == "deadlock_possible":
         return max(random.normal(loc=5, scale=3), 0)
     elif strategy == "no_deadlock":
@@ -23,3 +23,11 @@ def eating_time_distribution():
         return max(random.normal(loc=3, scale=1), 0)
     elif strategy == "no_deadlock":
         return 1
+
+
+def increase_hungriness(curr_hungriness, time):
+    return min(curr_hungriness + time * 0.066666, 1)
+
+
+def decrease_hungriness(curr_hungriness, time):
+    return max(curr_hungriness - time * 0.166666, 0)

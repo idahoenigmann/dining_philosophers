@@ -2,7 +2,7 @@ import math
 import sys
 import threading
 import warnings
-from parameters import meditating_time_distribution, eating_time_distribution
+from parameters import *
 
 
 # global variable locks
@@ -48,8 +48,12 @@ class Event:
         return f"{self.t}: {function}"
 
 
-def visualize_philosophers():
+def visualize_states():
     return "".join([f" {p.state} " for p in philosophers])
+
+
+def visualize_hungriness():
+    return "".join([f" {p.hungriness:2.1f} " for p in philosophers])
 
 
 class Philosopher:
@@ -58,15 +62,18 @@ class Philosopher:
         self.state = "-"
         self.id = id
         self.log = []
-        add_event(0, self.meditate)
+        self.hungriness = 0.0
+        self.meditate()
 
     def __str__(self):
-        return f"Philosopher {id}, State {self.state}"
+        return f"Philosopher {self.id}, State {self.state}, Hungriness {self.hungriness}"
 
     def meditate(self):
         self.state = "M"
         self.log.append(f"Meditating,{int(current_time)}\n")
-        add_event(meditating_time_distribution(self.id, current_time), self.get_left_chopstick)
+        meditating_time = meditating_time_distribution(self.id, current_time, self.hungriness)
+        self.hungriness = increase_hungriness(self.hungriness, meditating_time)
+        add_event(meditating_time, self.get_left_chopstick)
 
     def get_left_chopstick(self):
         self.state = "L"
@@ -77,6 +84,7 @@ class Philosopher:
         else:
             # could not get left chopstick, try again in 1 time unit
             add_event(1, self.get_left_chopstick)
+            self.hungriness = increase_hungriness(self.hungriness, 1)
 
     def get_right_chopstick(self):
         self.state = "R"
@@ -87,11 +95,14 @@ class Philosopher:
         else:
             # could not get right chopstick, try again in 1 time unit
             add_event(1, self.get_right_chopstick)
+            self.hungriness = increase_hungriness(self.hungriness, 1)
 
     def eat(self):
         self.state = "E"
         self.log.append(f"Eating,{int(current_time)}\n")
-        add_event(eating_time_distribution(), self.return_chopsticks)
+        eating_time = eating_time_distribution()
+        self.hungriness = decrease_hungriness(self.hungriness, eating_time)
+        add_event(eating_time, self.return_chopsticks)
 
     def return_chopsticks(self):
         self.state = "-"
@@ -124,9 +135,8 @@ if __name__ == "__main__":
     # initialize philosophers
     philosophers = [Philosopher(id) for id in range(5)]
 
-    print("simulation starts")
     print("M ... meditating \t L/R ... getting left/right chopstick \t E ... eating \t - ... returning chopstick")
-    print(f"Time  :  State of each philosopher")
+    print(f"Time  :  State                Hungriness")
     cnt_events = 0
 
     # variables for deadlock detection
@@ -135,19 +145,20 @@ if __name__ == "__main__":
 
     # deadlock is detected if nothing changes for cnt_events_until_deadlock events
     while cnt_last_state < cnt_events_until_deadlock and cnt_events < cnt_max_events:
+        # show state
+        print(f"{current_time:6.2f}: {visualize_states()} \t {visualize_hungriness()}")
+
         cnt_events += 1
         current_time, function = get_event()
         # call function corresponding to event
         function()
-        # show state
-        print(f"{current_time:6.2f}: {visualize_philosophers()}")
 
         # update variables for deadlock checking
-        if visualize_philosophers() == last_state:
+        if visualize_states() == last_state:
             cnt_last_state += 1
         else:
             cnt_last_state = 0
-            last_state = visualize_philosophers()
+            last_state = visualize_states()
 
     if cnt_last_state >= cnt_events_until_deadlock:
         print(f"Simulation ended as deadlock is detected after {cnt_events} events. "
