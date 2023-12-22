@@ -1,6 +1,7 @@
 import math
 import sys
 import threading
+import warnings
 from parameters import meditating_time_distribution, eating_time_distribution
 
 
@@ -106,10 +107,18 @@ class Philosopher:
 
 
 if __name__ == "__main__":
-    output_to_files = ("-o" in sys.argv or "--output" in sys.argv)
+    output_to_files_arg = ("-o" in sys.argv or "--output" in sys.argv)
+    cnt_max_events_arg = ("-c" in sys.argv or "--count" in sys.argv)
 
     # parameters
-    cnt_max_events = 500   # math.inf for simulation until deadlock
+    cnt_max_events = math.inf   # math.inf for simulation until deadlock
+    if cnt_max_events_arg:
+        arg_idx = list(e == "-c" or e == "--count" for e in sys.argv).index(True)
+        if len(sys.argv) < arg_idx or not sys.argv[arg_idx + 1].isdigit():
+            warnings.warn("Did not specify parameter count correctly. Defaulting to infinity.", UserWarning)
+        else:
+            cnt_max_events = int(sys.argv[arg_idx + 1])
+
     cnt_events_until_deadlock = 100
 
     # initialize philosophers
@@ -146,7 +155,7 @@ if __name__ == "__main__":
     else:
         print(f"Simulation ended after {cnt_events} events. No deadlock occurred.")
 
-    if output_to_files:
+    if output_to_files_arg:
         for p in philosophers:
             with open(f"philosopher{p.id}.csv", "w") as csvfile:
                 csvfile.writelines(p.log)

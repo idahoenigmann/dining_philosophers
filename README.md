@@ -23,7 +23,7 @@ Then get the code and run it.
 ```shell
 git clone https://github.com/idahoenigmann/dining_philosophers
 cd dining_philosophers
-python basic_event_based.py -o
+python basic_event_based.py -o -c 500
 python philosopher_visual.py
 ```
 
