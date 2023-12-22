@@ -11,7 +11,7 @@ strategy = "deadlock_possible"
 # random time distributions
 def meditating_time_distribution(id=None, time=None, hungriness=None):
     if strategy == "deadlock_possible":
-        return max(random.normal(loc=5, scale=3), 0)
+        return max(random.normal(loc=(-4*hungriness+5), scale=3), 0)
     elif strategy == "no_deadlock":
         if (id + time) % 5 == 0 or (id + time) % 5 == 2:
             return 1
