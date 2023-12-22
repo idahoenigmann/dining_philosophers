@@ -58,7 +58,7 @@ def visualize_hungriness():
 
 class Philosopher:
 
-    def __init__(self, id, hungriness):
+    def __init__(self, id, hungriness, cleaning):
         self.state = "-"
         self.id = id
         self.log = []
@@ -66,6 +66,7 @@ class Philosopher:
             self.hungriness = 0.0
         else:
             self.hungriness = None
+        self.cleaning = cleaning
         self.meditate()
 
     def __str__(self):
@@ -112,7 +113,16 @@ class Philosopher:
         eating_time = eating_time_distribution()
         if self.hungriness is not None:
             self.hungriness = decrease_hungriness(self.hungriness, eating_time)
-        add_event(eating_time, self.return_chopsticks)
+        if self.cleaning:
+            add_event(eating_time, self.clean)
+        else:
+            add_event(eating_time, self.return_chopsticks)
+
+    def clean(self):
+        self.state = "C"
+        self.log.append(f"Cleaning,{int(current_time)}\n")
+        cleaning_time = cleaning_time_distribution()
+        add_event(cleaning_time, self.return_chopsticks)
 
     def return_chopsticks(self):
         self.state = "-"
@@ -130,7 +140,8 @@ class Philosopher:
 if __name__ == "__main__":
     output_to_files_arg = ("-o" in sys.argv or "--output" in sys.argv)
     cnt_max_events_arg = ("-c" in sys.argv or "--count" in sys.argv)
-    hungriness_arg = ("--hungriness" in sys.argv)
+    hungriness_arg = ("--hungry" in sys.argv)
+    cleaning_arg = ("--clean" in sys.argv)
 
     # parameters
     cnt_max_events = math.inf   # math.inf for simulation until deadlock
@@ -144,9 +155,13 @@ if __name__ == "__main__":
     cnt_events_until_deadlock = 100
 
     # initialize philosophers
-    philosophers = [Philosopher(id, hungriness_arg) for id in range(5)]
+    philosophers = [Philosopher(id, hungriness_arg, cleaning_arg) for id in range(5)]
 
-    print("M ... meditating \t L/R ... getting left/right chopstick \t E ... eating \t - ... returning chopstick")
+    if cleaning_arg:
+        print("M ... meditating \t L/R ... getting left/right chopstick \t E ... eating \t C ... cleaning"
+              " \t - ... returning chopstick")
+    else:
+        print("M ... meditating \t L/R ... getting left/right chopstick \t E ... eating \t - ... returning chopstick")
     if hungriness_arg:
         print(f"Time  :  State                Hungriness")
     else:

@@ -28,6 +28,10 @@ def eating_time_distribution():
         return 1
 
 
+def cleaning_time_distribution():
+    return max(random.normal(loc=1, scale=0.1), 0)
+
+
 def increase_hungriness(curr_hungriness, time):
     return min(curr_hungriness + time * 0.04, 1)
 
