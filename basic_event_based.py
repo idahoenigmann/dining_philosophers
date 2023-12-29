@@ -2,6 +2,7 @@ import math
 import sys
 import threading
 import warnings
+import itertools
 from parameters import *
 
 
@@ -18,8 +19,14 @@ current_time = 0
 
 
 def add_event(time_until, function):
-    events.append(Event(current_time + time_until, function))
+    e = Event(current_time + time_until, function)
+    events.append(e)
     events.sort()
+    return e
+
+
+def remove_event(event):
+    events.remove(event)
 
 
 def get_event():
@@ -28,9 +35,12 @@ def get_event():
 
 
 class Event:
+    id_iter = itertools.count()
+
     def __init__(self, t, func):
         self.t = t
         self.func = func
+        self.id = next(Event.id_iter)
 
     def __gt__(self, other):
         return self.t > other.t
@@ -47,6 +57,9 @@ class Event:
     def __str__(self):
         return f"{self.t}: {function}"
 
+    def __eq__(self, other):
+        return self.id == other.id
+
 
 def visualize_states():
     return "".join([f" {p.state} " for p in philosophers])
@@ -58,7 +71,7 @@ def visualize_hungriness():
 
 class Philosopher:
 
-    def __init__(self, id, hungriness, cleaning):
+    def __init__(self, id, hungriness, cleaning, communicate):
         self.state = "-"
         self.id = id
         self.log = []
@@ -67,6 +80,8 @@ class Philosopher:
         else:
             self.hungriness = None
         self.cleaning = cleaning
+        self.communicate = communicate
+        self.next_event = None
         self.meditate()
 
     def __str__(self):
@@ -78,63 +93,100 @@ class Philosopher:
     def meditate(self):
         self.state = "M"
         self.log.append(f"Meditating,{int(current_time)}\n")
+
         meditating_time = meditating_time_distribution(self.id, current_time, self.hungriness)
+
         if self.hungriness is not None:
             self.hungriness = increase_hungriness(self.hungriness, meditating_time)
-        add_event(meditating_time, self.get_left_chopstick)
+        self.next_event = add_event(meditating_time, self.get_left_chopstick)
 
     def get_left_chopstick(self):
         self.state = "L"
         self.log.append(f"Left,{int(current_time)}\n")
+
         # get left chopstick
         if locks[self.id].acquire(blocking=False):
-            add_event(0, self.get_right_chopstick)
+            self.next_event = add_event(0, self.get_right_chopstick)
         else:
             # could not get left chopstick, try again in 1 time unit
-            add_event(1, self.get_left_chopstick)
+            self.next_event = add_event(1, self.get_left_chopstick)
             if self.hungriness is not None:
                 self.hungriness = increase_hungriness(self.hungriness, 1)
+                if self.communicate and self.hungriness > req_chopstick_if_hungrier_than:
+                    philosophers[(self.id - 1) % 5].req_chopstick()
 
     def get_right_chopstick(self):
         self.state = "R"
         self.log.append(f"Right,{int(current_time)}\n")
+
         # get right chopstick
         if locks[(self.id + 1) % 5].acquire(blocking=False):
-            add_event(0, self.eat)
+            self.next_event = add_event(0, self.eat)
         else:
             # could not get right chopstick, try again in 1 time unit
-            add_event(1, self.get_right_chopstick)
+            self.next_event = add_event(1, self.get_right_chopstick)
             if self.hungriness is not None:
                 self.hungriness = increase_hungriness(self.hungriness, 1)
+                if self.communicate and self.hungriness > req_chopstick_if_hungrier_than:
+                    philosophers[(self.id + 1) % 5].req_chopstick()
 
     def eat(self):
         self.state = "E"
         self.log.append(f"Eating,{int(current_time)}\n")
+
         eating_time = eating_time_distribution()
+
         if self.hungriness is not None:
             self.hungriness = decrease_hungriness(self.hungriness, eating_time)
         if self.cleaning:
-            add_event(eating_time, self.clean)
+            self.next_event = add_event(eating_time, self.clean)
         else:
-            add_event(eating_time, self.return_chopsticks)
+            self.next_event = add_event(eating_time, self.return_chopsticks)
 
     def clean(self):
         self.state = "C"
         self.log.append(f"Cleaning,{int(current_time)}\n")
+
         cleaning_time = cleaning_time_distribution()
-        add_event(cleaning_time, self.return_chopsticks)
+        self.hungriness = increase_hungriness(self.hungriness, cleaning_time)
+        self.next_event = add_event(cleaning_time, self.return_chopsticks)
 
     def return_chopsticks(self):
         self.state = "-"
         self.log.append(f"Return,{int(current_time)}\n")
 
         # return left chopstick
-        locks[self.id].release()
+        if locks[self.id].locked():
+            locks[self.id].release()
 
         # return right chopsick
-        locks[(self.id + 1) % 5].release()
+        if locks[(self.id + 1) % 5].locked():
+            locks[(self.id + 1) % 5].release()
 
-        add_event(0, self.meditate)
+        self.next_event = add_event(0, self.meditate)
+
+
+    def req_chopstick(self):
+        # if hungry or already cleaning don't give up chopstick
+        if self.hungriness > req_chopstick_if_hungrier_than or self.state == "C" or self.state == "-":
+            return
+
+        print(f"requested chopstick from {self.id}")
+
+        # reschedule my next event
+        remove_event(self.next_event)
+
+        if self.state == "R":
+            # give up chopsticks
+            self.return_chopsticks()
+        elif self.state == "E":
+            # update hungriness
+            self.hungriness = increase_hungriness(self.hungriness, -(self.next_event.t - current_time))
+
+            if self.cleaning:
+                self.clean()
+            else:
+                self.return_chopsticks()
 
 
 if __name__ == "__main__":
@@ -142,6 +194,11 @@ if __name__ == "__main__":
     cnt_max_events_arg = ("-c" in sys.argv or "--count" in sys.argv)
     hungriness_arg = ("--hungry" in sys.argv)
     cleaning_arg = ("--clean" in sys.argv)
+    communicate_arg = ("--communicate" in sys.argv)
+
+    if communicate_arg and not hungriness_arg:
+        warnings.warn("Did not specify hungry option, but did specify communicate. Adding hungry option.")
+        hungriness_arg = True
 
     # parameters
     cnt_max_events = math.inf   # math.inf for simulation until deadlock
@@ -155,7 +212,7 @@ if __name__ == "__main__":
     cnt_events_until_deadlock = 100
 
     # initialize philosophers
-    philosophers = [Philosopher(id, hungriness_arg, cleaning_arg) for id in range(5)]
+    philosophers = [Philosopher(id, hungriness_arg, cleaning_arg, communicate_arg) for id in range(5)]
 
     if cleaning_arg:
         print("M ... meditating \t L/R ... getting left/right chopstick \t E ... eating \t C ... cleaning"
