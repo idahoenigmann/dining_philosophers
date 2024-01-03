@@ -4,11 +4,11 @@ from numpy import random
 # random.seed(1234)
 
 # set strategy by uncommenting one of the following lines:
-strategy = "deadlock_possible"
-# strategy = "no_deadlock"
+#strategy = "deadlock_possible"
+#strategy = "one"
+strategy = "two"
 
 req_chopstick_if_hungrier_than = 0.85
-
 
 # random time distributions
 def meditating_time_distribution(id=None, time=None, hungriness=None):
@@ -20,16 +20,38 @@ def meditating_time_distribution(id=None, time=None, hungriness=None):
                 return max(random.normal(loc=(-4*hungriness+5), scale=3), 0)
         else:
             return max(random.normal(loc=(5), scale=3), 0)
-    elif strategy == "no_deadlock":
-        if (id + time) % 5 == 0 or (id + time) % 5 == 2:
-            return 1
+    elif strategy == "one":
+        if time == 0:
+            if id == 0:
+                return 1
+            if id == 4:
+                return 3
+            if id == 3:
+                return 5
+            if id == 2:
+                return 7
+            if id == 1:
+                return 9
+        return 7
+    elif strategy == "two":
+        if time == 0:
+            if id == 0:
+                return 1
+            if id == 4:
+                return 3
+            if id == 3:
+                return 5
+            if id == 2:
+                return 1
+            if id == 1:
+                return 3
         return 2
 
 
 def eating_time_distribution():
     if strategy == "deadlock_possible":
         return max(random.normal(loc=3, scale=1), 0)
-    elif strategy == "no_deadlock":
+    elif strategy == "one" or strategy == "two":
         return 1
 
 
