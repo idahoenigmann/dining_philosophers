@@ -18,8 +18,8 @@ events = []
 current_time = 0
 
 
-def add_event(time_until, function):
-    e = Event(current_time + time_until, function)
+def add_event(time_until, event_function):
+    e = Event(current_time + time_until, event_function)
     events.append(e)
     events.sort()
     return e
@@ -40,7 +40,7 @@ class Event:
     def __init__(self, t, func):
         self.t = t
         self.func = func
-        self.id = next(Event.id_iter)
+        self.event_id = next(Event.id_iter)
 
     def __gt__(self, other):
         return self.t > other.t
@@ -58,22 +58,22 @@ class Event:
         return f"{self.t}: {function}"
 
     def __eq__(self, other):
-        return self.id == other.id
+        return self.event_id == other.event_id
 
 
 def visualize_states():
-    return "".join([f" {p.state} " for p in philosophers])
+    return "".join([f" {philosopher.state} " for philosopher in philosophers])
 
 
 def visualize_hungriness():
-    return "".join([f" {p.hungriness:2.1f} " for p in philosophers])
+    return "".join([f" {philosopher.hungriness:2.1f} " for philosopher in philosophers])
 
 
 class Philosopher:
 
-    def __init__(self, id, hungriness, cleaning, communicate):
+    def __init__(self, philosopher_id, hungriness, cleaning, communicate):
         self.state = "-"
-        self.id = id
+        self.id = philosopher_id
         self.log = []
         if hungriness:
             self.hungriness = 0.0
@@ -159,7 +159,7 @@ class Philosopher:
         if locks[self.id].locked():
             locks[self.id].release()
 
-        # return right chopsick
+        # return right chopstick
         if locks[(self.id + 1) % 5].locked():
             locks[(self.id + 1) % 5].release()
 
@@ -190,6 +190,17 @@ class Philosopher:
 
 
 if __name__ == "__main__":
+    if "-h" in sys.argv or "--help" in sys.argv:
+        print(f"Usage: {sys.argv[0]} [OPTION]...\nEvent based simulation of dining philosophers problem.\n"
+              f"Example: {sys.argv[0]} -o -c 500\n\n"
+              f"Options:\n"
+              f"  -c, --count <NUM>  run simulation for at most NUM events\n"
+              f"  -o, --output       generate output csv-files, used for visualization\n"
+              f"  --hungry           enable hungriness and starvation\n"
+              f"  --clean            enable cleaning of chopsticks after use\n"
+              f"  --communicate      enable communication with neighboring philosophers")
+        exit()
+
     output_to_files_arg = ("-o" in sys.argv or "--output" in sys.argv)
     cnt_max_events_arg = ("-c" in sys.argv or "--count" in sys.argv)
     hungriness_arg = ("--hungry" in sys.argv)
@@ -212,7 +223,7 @@ if __name__ == "__main__":
     cnt_events_until_deadlock = 100
 
     # initialize philosophers
-    philosophers = [Philosopher(id, hungriness_arg, cleaning_arg, communicate_arg) for id in range(5)]
+    philosophers = [Philosopher(philosopher_id, hungriness_arg, cleaning_arg, communicate_arg) for philosopher_id in range(5)]
 
     if cleaning_arg:
         print("M ... meditating \t L/R ... getting left/right chopstick \t E ... eating \t C ... cleaning"

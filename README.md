@@ -3,7 +3,7 @@
 Python implementation for Modelling and Simulation project
 
 ### Implementations:
-* thread based
+* thread based (only minimal version)
 * event based
 
 ### Features:
@@ -11,15 +11,10 @@ Python implementation for Modelling and Simulation project
 * visualization
 * hungriness
 * cleaning
+* communication with neighboring philosophers
 
 ### Installation
 Make sure you installed numpy and matplotlib packages.
-If you are using venv or any other environment, I assume
-you know what to do.
-```shell
-pip install numpy
-pip install matplotlib
-```
 
 Then get the code and run it.
 ```shell
