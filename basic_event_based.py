@@ -194,8 +194,9 @@ if __name__ == "__main__":
         print(f"Usage: {sys.argv[0]} [OPTION]...\nEvent based simulation of dining philosophers problem.\n"
               f"Example: {sys.argv[0]} -o -c 500\n\n"
               f"Options:\n"
-              f"  -c, --count <NUM>  run simulation for at most NUM events\n"
-              f"  -o, --output       generate output csv-files, used for visualization\n"
+              f"  -h, --help         print this help message\n"
+              f"  -c, --count <NUM>  stop simulation after at most NUM events\n"
+              f"  -o, --output       generate output csv-files used for visualization\n"
               f"  --hungry           enable hungriness and starvation\n"
               f"  --clean            enable cleaning of chopsticks after use\n"
               f"  --communicate      enable communication with neighboring philosophers")

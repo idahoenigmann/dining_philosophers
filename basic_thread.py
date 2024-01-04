@@ -8,38 +8,36 @@ from parameters import meditating_time_distribution, eating_time_distribution
 locks = [threading.Lock() for _ in range(5)]
 
 
-def philosopher(id):
+def philosopher(philosopher_id):
     while True:
         # meditate
-        logging.info(f"Philosopher {id} is meditating.")
+        logging.info(f"Philosopher {philosopher_id} is meditating.")
         time.sleep(meditating_time_distribution())
 
         # eat
-        logging.info(f"Philosopher {id} is hungry.")
-        locks[id].acquire()
+        logging.info(f"Philosopher {philosopher_id} is hungry.")
+        locks[philosopher_id].acquire()
         try:
-            logging.info(f"Philosopher {id} got the left chopstick.")
+            logging.info(f"Philosopher {philosopher_id} got the left chopstick.")
 
-            locks[(id + 1) % 5].acquire()
+            locks[(philosopher_id + 1) % 5].acquire()
             try:
-                logging.info(f"Philosopher {id} got the right chopstick and started to eat.")
+                logging.info(f"Philosopher {philosopher_id} got the right chopstick and started to eat.")
                 time.sleep(eating_time_distribution())
 
-                logging.info(f"Philosopher {id} is finished eating.")
+                logging.info(f"Philosopher {philosopher_id} is finished eating.")
             finally:
                 pass
         finally:
-            locks[id].release()
-            locks[(id + 1) % 5].release()
-            logging.info(f"Philosopher {id} returned the chopsticks.")
-
-    logging.info(f"Philosopher {id} died.")
+            locks[philosopher_id].release()
+            locks[(philosopher_id + 1) % 5].release()
+            logging.info(f"Philosopher {philosopher_id} returned the chopsticks.")
 
 
 if __name__ == "__main__":
     logging.basicConfig(format="%(asctime)s: %(message)s", level=logging.INFO, datefmt="%H:%M:%S")
 
-    philosophers = [threading.Thread(target=philosopher, args=(id,), daemon=True) for id in range(5)]
+    philosophers = [threading.Thread(target=philosopher, args=(p_id,), daemon=True) for p_id in range(5)]
     for p in philosophers:
         p.start()
     for p in philosophers:
