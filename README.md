@@ -38,5 +38,5 @@ To enable the features hungriness, cleaning and communication have a look at one
 usages:
 ```shell
 python basic_event_based.py --help
-python basic_event_based --hungry --clean --communicate
+python basic_event_based.py --hungry --clean --communicate
 ```
