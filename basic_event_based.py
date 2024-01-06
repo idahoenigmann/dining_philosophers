@@ -77,7 +77,7 @@ class Philosopher:
         self.log = []
         if hungriness:
             self.hungriness = 0.0
-            self.last_hungriness_parameters = [0.0, 0]  # current_hungriness, current_time
+            self.last_hungriness = [0.0, 0]  # current_hungriness, current_time
         else:
             self.hungriness = None
         self.cleaning = cleaning
@@ -98,7 +98,7 @@ class Philosopher:
         meditating_time = meditating_time_distribution(self.id, current_time, self.hungriness)
 
         if self.hungriness is not None:
-            self.last_hungriness_parameters = [self.hungriness, current_time]
+            self.last_hungriness = [self.hungriness, current_time]
             self.hungriness = increase_hungriness(self.hungriness, meditating_time)
         self.next_event = add_event(meditating_time, self.get_left_chopstick)
 
@@ -113,7 +113,7 @@ class Philosopher:
             # could not get left chopstick, try again in 1 time unit
             self.next_event = add_event(1, self.get_left_chopstick)
             if self.hungriness is not None:
-                self.last_hungriness_parameters = [self.hungriness, current_time]
+                self.last_hungriness = [self.hungriness, current_time]
                 self.hungriness = increase_hungriness(self.hungriness, 1)
                 if self.communicate and self.hungriness > req_chopstick_if_hungrier_than:
                     print(f"{self.id} requested chopstick from {(self.id - 1) % 5}")
@@ -130,7 +130,7 @@ class Philosopher:
             # could not get right chopstick, try again in 1 time unit
             self.next_event = add_event(1, self.get_right_chopstick)
             if self.hungriness is not None:
-                self.last_hungriness_parameters = [self.hungriness, current_time]
+                self.last_hungriness = [self.hungriness, current_time]
                 self.hungriness = increase_hungriness(self.hungriness, 1)
                 if self.communicate and self.hungriness > req_chopstick_if_hungrier_than:
                     print(f"{self.id} requested chopstick from {(self.id + 1) % 5}")
@@ -143,7 +143,7 @@ class Philosopher:
         eating_time = eating_time_distribution()
 
         if self.hungriness is not None:
-            self.last_hungriness_parameters = [self.hungriness, current_time]
+            self.last_hungriness = [self.hungriness, current_time]
             self.hungriness = decrease_hungriness(self.hungriness, eating_time)
         if self.cleaning:
             self.next_event = add_event(eating_time, self.clean)
@@ -155,8 +155,9 @@ class Philosopher:
         self.log.append(f"Cleaning,{int(current_time)}\n")
 
         cleaning_time = cleaning_time_distribution()
-        self.last_hungriness_parameters = [self.hungriness, current_time]
-        self.hungriness = increase_hungriness(self.hungriness, cleaning_time)
+        if self.hungriness is not None:
+            self.last_hungriness = [self.hungriness, current_time]
+            self.hungriness = increase_hungriness(self.hungriness, cleaning_time)
         self.next_event = add_event(cleaning_time, self.return_chopsticks)
 
     def return_chopsticks(self):
@@ -176,7 +177,7 @@ class Philosopher:
 
     def req_chopstick(self):
         # if hungry or already cleaning don't give up chopstick
-        if decrease_hungriness(self.last_hungriness_parameters[0], (current_time - self.last_hungriness_parameters[1])) > req_chopstick_if_hungrier_than:
+        if decrease_hungriness(self.last_hungriness[0], (current_time - self.last_hungriness[1])) > req_chopstick_if_hungrier_than:
             print(f"request denied: too hungry")
             return
         elif self.state == "C" or self.state == "-":
@@ -193,7 +194,7 @@ class Philosopher:
             self.return_chopsticks()
         elif self.state == "E":
             # update hungriness
-            self.hungriness = decrease_hungriness(self.last_hungriness_parameters[0], (current_time - self.last_hungriness_parameters[1]))
+            self.hungriness = decrease_hungriness(self.last_hungriness[0], (current_time - self.last_hungriness[1]))
 
             if self.cleaning:
                 self.clean()

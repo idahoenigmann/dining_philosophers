@@ -4,9 +4,9 @@ from numpy import random
 # random.seed(1234)
 
 # set strategy by uncommenting one of the following lines:
-strategy = "deadlock_possible"
+# strategy = "deadlock_possible"
 # strategy = "one"
-# strategy = "two"
+strategy = "two"
 
 req_chopstick_if_hungrier_than = 0.85
 
