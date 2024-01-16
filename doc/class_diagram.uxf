@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>10</x>
+      <y>160</y>
+      <w>270</w>
+      <h>220</h>
+    </coordinates>
+    <panel_attributes>Event
+--
+-event_id: Integer
++t: Float
++func: Function
+_-id_itr: Integer__
+--
++__init__(t: Float, func: Function): Event
++__gt__(other: Event): Bool
++__ge__(other: Event): Bool
++__lt__(other: Event): Bool
++__le__(other: Event): Bool
++__eq__(other: Event): Bool
++__str__(): String</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>300</x>
+      <y>160</y>
+      <w>530</w>
+      <h>320</h>
+    </coordinates>
+    <panel_attributes>Philosopher
+--
++id: Integer
++state: String
+-cleaning: Bool
+-communicate: Bool
++hungriness: Float
++log: List&lt;String&gt;
+-last_hungriness: Float
+-next_event: Event
+--
++__init__(id: Integer, hungry: Bool, clean: Bool, communicate: Bool): Philosopher 
++meditate(): void
++get_left_chopstick(): void
++get_right_chopstick(): void
++eat(): void
++clean(): void
++return_chopstick(): void
++req_chopstick(): void
++__str__(): String</panel_attributes>
+    <additional_attributes/>
+  </element>
+</diagram>

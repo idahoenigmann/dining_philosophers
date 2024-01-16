@@ -92,31 +92,45 @@ class Philosopher:
             return f"Philosopher {self.id}, State {self.state}, Hungriness {self.hungriness}"
 
     def meditate(self):
+        # set state to meditating
         self.state = "M"
+        # append state change to log used for visualization
         self.log.append(f"Meditating,{int(current_time)}\n")
 
+        # get time needed for meditation
         meditating_time = meditating_time_distribution(self.id, current_time, self.hungriness)
 
         if self.hungriness is not None:
+            # remember old hungriness in case this event is interrupted
             self.last_hungriness = [self.hungriness, current_time]
+            # increase hungriness for time spend in meditation
             self.hungriness = increase_hungriness(self.hungriness, meditating_time)
+        # get left chopstick after finished with meditation
         self.next_event = add_event(meditating_time, self.get_left_chopstick)
 
     def get_left_chopstick(self):
+        # set state to left chopstick
         self.state = "L"
+        # append state change to log used for visualization
         self.log.append(f"Left,{int(current_time)}\n")
 
-        # get left chopstick
+        # try to get left chopstick
         if locks[self.id].acquire(blocking=False):
+            # successful, now add get right chopstick as next event
             self.next_event = add_event(0, self.get_right_chopstick)
         else:
             # could not get left chopstick, try again in 1 time unit
             self.next_event = add_event(1, self.get_left_chopstick)
+
             if self.hungriness is not None:
+                # remember old hungriness in case this event is interrupted
                 self.last_hungriness = [self.hungriness, current_time]
+                # increase hungriness for time spend waiting
                 self.hungriness = increase_hungriness(self.hungriness, 1)
+
                 if self.communicate and self.hungriness > req_chopstick_if_hungrier_than:
                     print(f"{self.id} requested chopstick from {(self.id - 1) % 5}")
+                    # request chopstick from left philosopher
                     philosophers[(self.id - 1) % 5].req_chopstick()
 
     def get_right_chopstick(self):
@@ -161,17 +175,20 @@ class Philosopher:
         self.next_event = add_event(cleaning_time, self.return_chopsticks)
 
     def return_chopsticks(self):
+        # set state to returning chposticks
         self.state = "-"
+        # append state change to log used for visualization
         self.log.append(f"Return,{int(current_time)}\n")
 
-        # return left chopstick
+        # return left chopstick, if currently held
         if locks[self.id].locked():
             locks[self.id].release()
 
-        # return right chopstick
+        # return right chopstick, if currently held
         if locks[(self.id + 1) % 5].locked():
             locks[(self.id + 1) % 5].release()
 
+        # schedule meditate as next event
         self.next_event = add_event(0, self.meditate)
 
 
