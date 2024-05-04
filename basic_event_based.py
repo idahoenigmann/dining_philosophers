@@ -227,6 +227,7 @@ if __name__ == "__main__":
               f"  -h, --help         print this help message\n"
               f"  -c, --count <NUM>  stop simulation after at most NUM events\n"
               f"  -o, --output       generate output csv-files used for visualization\n"
+              f"  -s, --statistics   print statistics of simulation at end\n"
               f"  --hungry           enable hungriness and starvation\n"
               f"  --clean            enable cleaning of chopsticks after use\n"
               f"  --communicate      enable communication with neighboring philosophers")
@@ -234,6 +235,7 @@ if __name__ == "__main__":
 
     output_to_files_arg = ("-o" in sys.argv or "--output" in sys.argv)
     cnt_max_events_arg = ("-c" in sys.argv or "--count" in sys.argv)
+    statistics = ("-s" in sys.argv or "--statistics" in sys.argv)
     hungriness_arg = ("--hungry" in sys.argv)
     cleaning_arg = ("--clean" in sys.argv)
     communicate_arg = ("--communicate" in sys.argv)
@@ -301,13 +303,21 @@ if __name__ == "__main__":
             cnt_last_state = 0
             last_state = visualize_states()
 
+    termination_reason = "-"
     if cnt_last_state >= cnt_events_until_deadlock:
         print(f"Simulation ended as deadlock is detected after {cnt_events} events. "
               f"In the last {cnt_events_until_deadlock} events nothing changed.")
+        termination_reason = "deadlock"
     elif cnt_events >= cnt_max_events:
         print(f"Simulation ended after {cnt_events} events. No deadlock occurred.")
+        termination_reason = "cnt events reached"
     else:
         print(f"Simulation ended after a philosopher died after {cnt_events} events.")
+        termination_reason = "philosopher died"
+
+    if statistics:
+        print(f"Statistics: number events, time passed, termination reason\n"
+              f"{cnt_events}, {current_time}, {termination_reason}")
 
     if output_to_files_arg:
         for p in philosophers:
